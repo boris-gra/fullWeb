@@ -5,5 +5,8 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
-rootProject.name = "query-gra"
+
+rootProject.name = "fullWeb"
+
+include(":main", ":java")
 
