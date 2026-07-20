@@ -8,6 +8,19 @@ import kotlinx.serialization.json.Json
 var message = ""
 var loadTestingKeys = ""
 
+// CSP заголовок для защиты от XSS атак
+private val contentSecurityPolicy = listOf(
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: https:",
+    "connect-src 'self' *",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'"
+).joinToString("; ")
+
 fun Route.getAndPost() {
     //https://ktor.io/docs/routing.html#parameters
     post(JSR223) {
@@ -25,16 +38,29 @@ fun Route.getAndPost() {
         call.respondText(
             (this::class.java.classLoader.getResource("index.html")?.readText() ?: "")
                 .replace("<!--META_SECURITY-->", if ((System.getenv("SERVER_TYPE") ?: SERVER_TYPE) == SERVER_TYPE) META_SECURITY else ""),
-            ContentType.Text.Html
+            ContentType.Text.Html,
+            // Добавляем CSP заголовок для защиты от XSS
+            buildHeaders {
+                append(HttpHeaders.ContentSecurityPolicy, contentSecurityPolicy)
+                append("X-Content-Type-Options", "nosniff")
+                append("X-Frame-Options", "DENY")
+                append("X-XSS-Protection", "1; mode=block")
+                append("Referrer-Policy", "strict-origin-when-cross-origin")
+            }
         )
     }
     get("/com/{command}") {
         call.parameters["command"]
-            ?.let {
-                println(it)
+            ?.let { command ->
+                // Валидация команды для предотвращения инъекций OS команд
+                if (!command.matches(Regex("^[a-zA-Z0-9_\\-\\.]+$"))) {
+                    call.respondText("Invalid command format", HttpStatusCode.BadRequest)
+                    return@let
+                }
+                println(command)
                 val result =
                     Runtime.getRuntime() // https://stackoverflow.com/questions/70035178/kotlin-script-to-run-os-command-and-parse-output
-                        .exec(it.split(" ").toTypedArray())
+                        .exec(command.split(" ").toTypedArray())
                         .inputStream
                         .readAllBytes()
                 call.respond(result)

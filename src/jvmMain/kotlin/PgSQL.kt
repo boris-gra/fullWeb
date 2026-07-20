@@ -4,7 +4,9 @@ import org.postgresql.util.PSQLException
 import java.io.File
 import java.sql.Connection
 import java.sql.DriverManager
+import java.sql.PreparedStatement
 import java.util.*
+import java.util.regex.Pattern
 
 data class ConnectionType(var pgSql: Connection?, var bigQuery: BigQuery?)
 
@@ -19,6 +21,24 @@ internal const val JDBC = "jdbc:postgresql"
 internal const val DATABASE_URL = "DATABASE_URL"
 internal const val BIG_QUERY = "BIG_QUERY"
 internal const val DATABASE_TIMEOUT = "DATABASE_TIMEOUT"
+
+// Whitelist для разрешённых SQL операций
+private val ALLOWED_SQL_PATTERNS = listOf(
+    Pattern.compile("^\\s*SELECT\\s+", Pattern.CASE_INSENSITIVE),
+    Pattern.compile("^\\s*WITH\\s+", Pattern.CASE_INSENSITIVE),
+    Pattern.compile("^\\s*FROM\\s+", Pattern.CASE_INSENSITIVE)
+)
+
+// Опасные паттерны SQL инъекций
+private val DANGEROUS_PATTERNS = listOf(
+    Pattern.compile(";\\s*(DROP|CREATE|ALTER|TRUNCATE|DELETE|INSERT|UPDATE)", Pattern.CASE_INSENSITIVE),
+    Pattern.compile("--", Pattern.CASE_INSENSITIVE),
+    Pattern.compile("/\\*.*\\*/", Pattern.CASE_INSENSITIVE),
+    Pattern.compile("\\bOR\\b\\s+['\"]?\\d+['\"]?\\s*=\\s*['\"]?\\d+", Pattern.CASE_INSENSITIVE),
+    Pattern.compile("\\bUNION\\b.*\\bSELECT\\b", Pattern.CASE_INSENSITIVE),
+    Pattern.compile("\\bEXEC(UTE)?\\b", Pattern.CASE_INSENSITIVE),
+    Pattern.compile("\\bxp_", Pattern.CASE_INSENSITIVE)
+)
 
 private fun String.splitURL() {
 //    "postgresql://username:password@host:port/database?sslmode=require"
@@ -108,6 +128,12 @@ fun jsonPGview(
     run {
 //        println("fieldsValueMap=$fieldsValueMap")
         println("pgView=$pgView;where=$where;name=$name")
+        
+        // Валидация имени представления/таблицы
+        if (!validateTableName(pgView.split(" ")[0].trim())) {
+            return "[\n" + errorJson("Invalid table/view name: $pgView") + "]\n"
+        }
+        
         checkInjection(pgView + where)?.let { //  Injection inserted
             return "[\n" + errorJson("Check Injection ERROR -> ${pgView + where}") + "]\n"
         }
@@ -158,14 +184,69 @@ private fun rezSQL(sqlSelect: String, fieldsValueMap: Map<String, String> = empt
             it.printStackTrace()
     }.getOrNull()
 
-private fun checkInjection(query: String) =
-    listOf(" OR ", ";", "CREATE", "INSERT", "DELETE", "SELECT")
-        .filter { query.uppercase(Locale.getDefault()).contains(it) }
-        .ifEmpty { null } // Injection NOT inserted
+/**
+ * Проверка на SQL инъекции с использованием нескольких уровней защиты:
+ * 1. Поиск опасных паттернов
+ * 2. Валидация структуры запроса
+ * 3. Экранирование специальных символов
+ */
+private fun checkInjection(query: String): String? {
+    val upperQuery = query.uppercase(Locale.getDefault())
+    
+    // Уровень 1: Проверка опасных паттернов
+    DANGEROUS_PATTERNS.forEach { pattern ->
+        if (pattern.matcher(upperQuery).find()) {
+            println("⚠️ SQL Injection detected (pattern ${pattern.pattern()}): $query")
+            return "Detected dangerous SQL pattern: ${pattern.pattern()}"
+        }
+    }
+    
+    // Уровень 2: Проверка на наличие множественных запросов через точку с запятой
+    val semicolonCount = query.count { it == ';' }
+    if (semicolonCount > 1) {
+        println("⚠️ Multiple SQL statements detected: $query")
+        return "Multiple SQL statements are not allowed"
+    }
+    
+    // Уровень 3: Проверка баланса скобок
+    val openParenCount = query.count { it == '(' }
+    val closeParenCount = query.count { it == ')' }
+    if (openParenCount != closeParenCount) {
+        println("⚠️ Unbalanced parentheses detected: $query")
+        return "Unbalanced parentheses in query"
+    }
+    
+    return null // Injection NOT detected
+}
+
+/**
+ * Экранирование строковых значений для предотвращения SQL инъекций
+ */
+private fun escapeSqlString(value: String): String {
+    return value.replace("'", "''")
+        .replace("\\", "\\\\")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
+        .replace("\u0000", "")
+}
+
+/**
+ * Валидация имени таблицы/представления (только буквы, цифры, подчёркивание)
+ */
+private fun validateTableName(name: String): Boolean {
+    return name.matches(Regex("^[a-zA-Z_][a-zA-Z0-9_]*$"))
+}
 
 fun jsonPGupd(bdName: String, updRecords: UpdateData, pgView: String) =
     runCatching {
         println("UPD.fieldsValueMap=${updRecords.fieldsValue}")
+        
+        // Валидация имени таблицы/представления перед UPDATE/DELETE/INSERT
+        if (!validateTableName(pgView.split(" ")[0].trim())) {
+            return@runCatching "$UPDATE_BASE_ERROR Invalid table/view name: $pgView"
+        }
+        
         connectionError = ""
         getBaseConnection(bdName)?.pgSql?.createStatement()
             ?.execute(formSQLQuery(updRecords, pgView, QUOTE_ONE))
@@ -233,7 +314,14 @@ private fun idFieds(it: Map.Entry<String, Any?>, quoteType: String) = // table's
 private fun whereSQL(keysValues: Map<String, Any?>, quoteType: String) =
     "\n where 0=0 " + keysValues
         .filter {idFieds(it, quoteType)}
-        .map { " and ${it.key} ${if (it.value == null) "is" else "=" } ${it.value}" }
+        .map { 
+            val escapedValue = if (it.value != null && !it.value.toString().endsWith(quoteType)) {
+                escapeSqlString(it.value.toString())
+            } else {
+                it.value.toString()
+            }
+            " and ${it.key} ${if (it.value == null) "is" else "=" } $escapedValue" 
+        }
         .joinToString(" ")
 
 private fun pgsqlJson(
@@ -295,8 +383,8 @@ val replaceEscape = { content: String, quote: String ->
     else
         "${if (quote == QUOTE_ONE) "E" else ""}$quote${
             if (quote == QUOTE_ONE)
-                content
-                    .replace("'", "''")
+                // Улучшенное экранирование для предотвращения SQL инъекций
+                escapeSqlString(content)
             else content
         }$quote"
 }
