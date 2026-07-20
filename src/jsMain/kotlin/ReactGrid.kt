@@ -39,6 +39,7 @@ external interface ReactGridProps : Props {
     var onCellKeyPress: Any?
     var onCellKeyDown: Any?
     var onRowSelected: Any?
+    var theme: Any?
 }
 
 external interface ParamsAG {

@@ -472,6 +472,8 @@ val AppClients = FC<Props> {
 //                        enableRangeSelection = true
 //                        enableRangeHandle = true
 //                        enableFillHandle = true
+
+//                        theme = ???
                         onGridReady = { params: ParamsAG -> gridApi = params.api }
                         onCellClicked = cellClicked(editIcon)
                         onCellValueChanged = valueChanged(rowList)

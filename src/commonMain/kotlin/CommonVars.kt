@@ -16,7 +16,7 @@ internal const val CONSTRUCTION = "Construction"
 internal const val HIDE = "hide"
 internal const val SHOW = "show"
 internal const val NOT_JSON_CHAR = "" // early "\n{}\"';,:=\t\b\n\\#&"
-internal const val REPLACE_STR = "^^%d@@"
+//internal const val REPLACE_STR = "^^%d@@"
 internal const val QUOTE_ONE = "'"
 internal const val QUOTE_THREE = "\"\"\""
 internal const val LOADENV = "loadEnv"
@@ -53,23 +53,25 @@ var rowFieldsValueMap = mutableMapOf<String, String>()
 @Serializable
 data class UpdateData(val rowsUpd: List<String>, val rowsDel: List<String>, val rowsIns: List<String>,val fieldsValue:Map<String, String>)
 
-fun decodeJson(inString: String, replacedChar: String = NOT_JSON_CHAR) =
-    run {
-        var rez = inString
-        replacedChar.indices.forEach {
-            rez = rez.replace(REPLACE_STR.replace("%d", it.toString()), replacedChar[it].toString())
-        }
-        rez
-    }
+fun decodeJson(inString: String) = inString
+//fun decodeJson(inString: String, replacedChar: String = NOT_JSON_CHAR) = inString
+//    run {
+//        var rez = inString
+//        replacedChar.indices.forEach {
+//            rez = rez.replace(REPLACE_STR.replace("%d", it.toString()), replacedChar[it].toString())
+//        }
+//        rez
+//    }
 
-fun encodeJson(inString: String, replacedChar: String = NOT_JSON_CHAR) =
-    run {
-        var rez = inString
-        replacedChar.indices.forEach {
-            rez = rez.replace(replacedChar[it].toString(), REPLACE_STR.replace("%d", it.toString()))
-        }
-        rez
-    }
+fun encodeJson(inString: String) = inString
+//fun encodeJson(inString: String, replacedChar: String = NOT_JSON_CHAR) = inString
+//    run {
+//        var rez = inString
+//        replacedChar.indices.forEach {
+//            rez = rez.replace(replacedChar[it].toString(), REPLACE_STR.replace("%d", it.toString()))
+//        }
+//        rez
+//    }
 
 fun insertParameterValue(queryIn: String, fieldsValueMap: Map<String, String> = rowFieldsValueMap) = run {
     var query = queryIn

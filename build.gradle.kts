@@ -94,7 +94,7 @@ kotlin {
                 implementation("$kotlinw-react")
                 implementation("$kotlinw-react-dom")
 //                implementation("$kotlinw-extensions") // is deprecated - aSemy and turansky committed on May 9 2024
-                implementation("$kotlinw-emotion") // css {} ,GlobalStyles
+                implementation("$kotlinw-emotion") // for mui , css {} ,GlobalStyles
                 if (pre > 638) {
                     implementation("$kotlinw-mui-base")
                     implementation("$kotlinw-mui-material")
@@ -106,14 +106,14 @@ kotlin {
 
                 implementation(npm("date-fns", "4.1.0"))
                 implementation(npm("@date-io/date-fns", "3.0.0"))
-                implementation(npm("css-loader", "7.1.2")) //https://discuss.kotlinlang.org/t/kotlin-js-a-style-from-the-npm-package/16759/3
-                implementation(npm("style-loader", "4.0.0"))
+//d                implementation(npm("css-loader", "7.1.2")) //https://discuss.kotlinlang.org/t/kotlin-js-a-style-from-the-npm-package/16759/3
+//d                implementation(npm("style-loader", "4.0.0"))
 //                @file:JsModule
                 implementation(npm("react-share", "~5.1.1"))//https://www.npmjs.com/package/react-share
                 implementation(npm("mui-nested-menu", "~3.4.0"))//https://www.npmjs.com/package/mui-nested-menu
-                implementation(npm("ag-grid-community", "~32.3.3")) // https://www.npmjs.com/package/ag-grid-community
-                implementation(npm("ag-grid-react", "~32.3.3"))
-                implementation(npm("@ag-grid-community/styles", "~32.3.3"))
+                implementation(npm("ag-grid-community", "~35.3.1")) // https://www.npmjs.com/package/ag-grid-community
+                implementation(npm("ag-grid-react", "~35.3.1"))
+//d                implementation(npm("@ag-grid-community/styles", "~32.3.3"))
             }
         }
     }
