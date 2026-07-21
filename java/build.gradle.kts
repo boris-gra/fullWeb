@@ -22,7 +22,8 @@ kotlin {
 }
 
 sourceSets {
-    val main by getting {
+    main{
+        kotlin.srcDir("src/jvmMain/kotlin")
         dependencies {
             implementation(kotlin("stdlib"))
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.3")

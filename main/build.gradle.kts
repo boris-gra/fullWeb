@@ -25,7 +25,7 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
+        commonMain{
             dependencies {
                 implementation(kotlin("stdlib-common"))
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
@@ -34,7 +34,7 @@ kotlin {
             }
         }
 
-        val jsMain by getting {
+        jsMain{
             dependencies {
                 implementation("io.ktor:ktor-client-core:$ktorVersion")
                 implementation("io.ktor:ktor-client-js:$ktorVersion")
