@@ -1,3 +1,4 @@
+//+++ java/build.gradle.kts (修改后)
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
@@ -17,25 +18,17 @@ repositories {
 }
 
 kotlin {
-    sourceSets.all {
-        languageSettings {
-            languageVersion = "2.0"
-        }
-    }
+    jvmToolchain(17)
 }
 
 sourceSets {
-    val commonMain by getting {
+    val main by getting {
         dependencies {
-            implementation(kotlin("stdlib-common"))
+            implementation(kotlin("stdlib"))
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.3")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
-        }
-    }
 
-    val jvmMain by getting {
-        dependencies {
             implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
             implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
             implementation("io.ktor:ktor-server-compression:$ktorVersion")
@@ -57,7 +50,7 @@ application {
 
 tasks.withType<KotlinJvmCompile>().configureEach {
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_23)
+        jvmTarget.set(JvmTarget.JVM_17)
         freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
     }
 }
