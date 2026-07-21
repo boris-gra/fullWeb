@@ -1,13 +1,49 @@
-# Project exclude paths
-/.gradle/
-/build/
-/java/build/
-/main/build/
-/build/classes/kotlin/jvm/main/
-/build/js/packages/vollstapel/kotlin/
-/.idea/
-/kotlin-js-store/
-/.run/
-/.kotlin/
-/src/commonMain/resources/config.properties
-/querys.crt
+```
+# Dependencies
+.gradle/
+node_modules/
+venv/
+.venv/
+
+# Build artifacts
+build/
+target/
+*.class
+*.jar
+*.war
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp files
+*.tmp
+*.temp
+```
