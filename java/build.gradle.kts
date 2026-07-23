@@ -2,12 +2,13 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
-val ktorVersion = "3.0.1"
+val ktorVersion = "3.5.0"
+val serializationVersion = "1.11.0"
 
 plugins {
-    kotlin("jvm") version "2.1.0"
+    kotlin("jvm") version "2.4.10"
     application
-    kotlin("plugin.serialization") version "2.1.0"
+    kotlin("plugin.serialization") version "2.4.10"
 }
 
 group = "org.example"
@@ -17,8 +18,13 @@ repositories {
     mavenCentral()
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 sourceSets {
@@ -26,8 +32,8 @@ sourceSets {
         kotlin.srcDir("src/jvmMain/kotlin")
         dependencies {
             implementation(kotlin("stdlib"))
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.3")
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
 
             implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
@@ -51,7 +57,7 @@ application {
 
 tasks.withType<KotlinJvmCompile>().configureEach {
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
+        jvmTarget.set(JvmTarget.JVM_21)
         freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
     }
 }
