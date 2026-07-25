@@ -22,7 +22,7 @@ kotlin {
         }
     }
 
-    js(IR) {
+    js() {
         browser {
             binaries.executable()
         }
@@ -47,6 +47,7 @@ kotlin {
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
                 implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.8.0")
                 implementation(project.dependencies.enforcedPlatform("$kotlinw-wrappers-bom:$kotlinWrappersVersion"))
                 implementation("$kotlinw-react")
                 implementation("$kotlinw-react-dom")

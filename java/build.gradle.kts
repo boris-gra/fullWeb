@@ -34,7 +34,7 @@ sourceSets {
             implementation(kotlin("stdlib"))
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
-            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
+//            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.8.0")
 
             implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
             implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
@@ -73,6 +73,6 @@ distributions {
     }
 }
 
-tasks.create("stage") {
+tasks.register("stage") {
     dependsOn(tasks.getByName("installDist"))
 }

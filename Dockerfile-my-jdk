@@ -1,6 +1,6 @@
 # !!!! Create image after build PRRODUCTON in IntelliJ - copy  from ./build/install/query-gra
 #https://stackoverflow.com/questions/71577703/how-do-i-make-a-artifact-stored-in-googles-artifact-registry-public
-FROM eclipse-temurin:23-jdk-alpine AS my-jdk
+FROM eclipse-temurin:25-jdk-alpine AS my-jdk
 
 # required for strip-debug to work
 RUN apk add --no-cache binutils
@@ -33,13 +33,13 @@ ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 COPY --from=my-jdk /customjre $JAVA_HOME
 
-COPY --chmod=777 ./build/install/query-gra /app/
+COPY --chmod=777 ./java/build/install/java /app/
 
 WORKDIR /app/bin
 
 EXPOSE 9090
 
-CMD ["./query-gra"]
+CMD ["./java"]
 #ENTRYPOINT [ "java", "-jar", "query-gra.jar" ]
 
 
