@@ -11,3 +11,4 @@
 /.kotlin/
 /src/commonMain/resources/config.properties
 /querys.crt
+.aider*

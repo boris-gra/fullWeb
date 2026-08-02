@@ -8,8 +8,9 @@
           <entry key="DATABASE_TIMEOUT" value="15" />
           <entry key="DATABASE_URL_koyeb_querys" value="postgres://koyeb-adm:bEhm6HPl7JSF@ep-falling-shape-89504286.eu-central-1.aws.neon.tech/querys" />
           <entry key="DATABASE_URL_neon" value="postgres://fo_user:HwAJ7FseEZ6K@ep-aged-wind-326026.ap-southeast-1.aws.neon.tech/fo" />
-          <entry key="PORT" value="8080" />
+          <entry key="PORT" value="8085" />
           <entry key="QUERY_BD" value="koyeb_querys" />
+          <entry key="b" value="window.location.origin:8081" />
           <entry key="q_1" value="https://www.ag-grid.com/example-assets/olympic-winners.json" />
         </map>
       </option>

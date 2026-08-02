@@ -203,8 +203,9 @@ val AppClients = FC<Props> {
                 List {
                     queryHistory.forEachIndexed { i, it ->
                         ListItem {
-                            selected = it.third == titleCurrent
+//                            selected = it.third == titleCurrent
                             ListItemButton {
+                                className = ClassName(if (it.third == titleCurrent) "Mui-selected" else "") // instead of selected
                                 +it.third
                                 onClick = {
                                     historyCurrent = i
@@ -323,7 +324,7 @@ val AppClients = FC<Props> {
             }
         }
         img {
-            className = ClassName(HIDE) // from 609 not work  npm react-share
+            className = ClassName(SHOW)
             src = "img/share.png"
             title = "share"
             height = HEIGHT

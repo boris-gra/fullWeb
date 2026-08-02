@@ -5,7 +5,7 @@
 import react.*
 
 @JsName("NestedDropdown")
-external var nestedMenu: ComponentClass<NestedMenuProps>
+external var nestedMenu: ElementType<NestedMenuProps>
 
 external interface NestedMenuProps : Props {
     var menuItemsData: dynamic

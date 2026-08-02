@@ -1,9 +1,9 @@
+import web.dom.ElementId
 import web.cssom.ClassName
 import mui.material.FormControlVariant
 import mui.material.TextField
 import mui.material.TextFieldColor
 import react.*
-import web.html.InputType
 import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.input
 import react.dom.onChange
@@ -15,7 +15,6 @@ external interface InputProps : Props {
 
 val InputFC = FC<InputProps> { props ->
     var text by useState("")
-
     form {
         onSubmit = {
             it.preventDefault()
@@ -23,12 +22,15 @@ val InputFC = FC<InputProps> { props ->
             props.onSubmit(text)
         }
         input {
-            id = "inputAny"
+            id = ElementId("inputAny")
             onChange = {
                 text = it.target.value
             }
             placeholder = props.placeholder
-            type = if (props.placeholder != ADMIN_PASSW) InputType.text else InputType.password
+            type = if (props.placeholder != ADMIN_PASSW)
+                "text".unsafeCast<web.html.InputType>()
+            else
+                "password".unsafeCast<web.html.InputType>()
             value = text
             size = text.length
             className = ClassName("cl3")
@@ -44,24 +46,26 @@ external interface FieldDateProps : Props {
 }
 
 val FieldDateFC = FC<FieldDateProps> { props ->
-    TextField{
-        id = props.id
+    TextField {
+        id = ElementId(props.id)
         label = ReactNode(props.label)
         color = TextFieldColor.secondary
+
         @Suppress("unused")
-        asDynamic().inputProps = object { // InputProps={{ sx: { height: 80 } }}
-            val min = DATE_MIN //inputProps={{ min: "2019-01-01", max: "2027-12-31" }}
+        asDynamic().inputProps = object {
+            val min = DATE_MIN
             val max = DATE_MAX
             val sx = object {
                 val background = "#b3ffb3"
                 val height = 15
             }
         }
-        type = InputType.date
+
+        type = "date".unsafeCast<web.html.InputType>()
         variant = FormControlVariant.standard
-        placeholder="DD.MM.YYYY"
+        placeholder = "DD.MM.YYYY"
         required = true
-        defaultValue = props.defaultValue // "yyyy-MM-dd".
+        defaultValue = props.defaultValue
         className = ClassName("cl3")
         onChange = props.onChange
     }

@@ -26,6 +26,7 @@ fun main() {
 
     embeddedServer(Netty, System.getenv("PORT")?.toInt() ?: 9090) {
         loadEnv(this::class.java.classLoader)
+//        loadEnv(javaClass.classLoader)
         install(ContentNegotiation) {
             json()
         }
@@ -50,20 +51,23 @@ fun main() {
 
 private fun loadEnv(loader:ClassLoader) = // https://mkyong.com/java/java-properties-file-examples/
     try {
-//        loader.getResourceAsStream("config.properties").use { input ->
-//            Properties()
-//                .let {
-//                    it.load(input)
-//                    startEnv[GIT_VERSION] =
-//                        "ver:${it.getProperty(GIT_VERSION) ?: ""}  (Start on ${SimpleDateFormat("dd.MM.yyyy").format(Date())})"
-                    startEnv[JSR223] = System.getenv(JSR223) ?: HIDE
-                    startEnv[FIRSTQUERY] = System.getenv(FIRSTQUERY) ?: ""
-                    startEnv[ENDPOINT_SERVICE_URL] = System.getenv(ENDPOINT_SERVICE_URL) ?: ""
-                    startEnv[VIEW_QUERY_NAME] = System.getenv(VIEW_QUERY_NAME) ?: VIEW_QUERY
-                    startEnv[VIEW_QUERY_WHERE] = System.getenv(VIEW_QUERY_WHERE) ?: VIEW_QUERY_WHERE_DEFAULT
-                    println("startEnv=$startEnv")
-//            }
-//        }
+        startEnv[GIT_VERSION] = "??? git.version=1.2.9-49c99c1 Compile on 28.07.2026 16:26"
+        loader.getResourceAsStream("resources/config.properties")
+//        Thread.currentThread().getContextClassLoader().getResourceAsStream("config.properties")
+        ?.use { input ->
+            Properties()
+                .let {
+                    it.load(input)
+                    startEnv[GIT_VERSION] =
+                        "ver:${it.getProperty(GIT_VERSION) ?: ""}  (Start on ${SimpleDateFormat("dd.MM.yyyy").format(Date())})"
+            }
+        }
+        startEnv[JSR223] = System.getenv(JSR223) ?: HIDE
+        startEnv[FIRSTQUERY] = System.getenv(FIRSTQUERY) ?: ""
+        startEnv[ENDPOINT_SERVICE_URL] = System.getenv(ENDPOINT_SERVICE_URL) ?: ""
+        startEnv[VIEW_QUERY_NAME] = System.getenv(VIEW_QUERY_NAME) ?: VIEW_QUERY
+        startEnv[VIEW_QUERY_WHERE] = System.getenv(VIEW_QUERY_WHERE) ?: VIEW_QUERY_WHERE_DEFAULT
+        println("startEnv=$startEnv")
         System.getenv(QUERY_BD)?.let {
             queryBdName = it
             startEnv[QUERY_BD] = System.getenv(QUERY_BD)

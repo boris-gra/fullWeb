@@ -2,7 +2,6 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 
 val serializationVersion = "1.11.0"
 val ktorVersion = "3.5.0"
-//val pre = 841
 val kotlinWrappersVersion = "2026.6.10"
 val kotlinw = "org.jetbrains.kotlin-wrappers:kotlin"
 
@@ -18,7 +17,7 @@ repositories {
 kotlin {
     sourceSets.all {
         languageSettings {
-            languageVersion = "2.1"
+            languageVersion = "2.2"
         }
     }
 
@@ -51,11 +50,12 @@ kotlin {
                 implementation(project.dependencies.enforcedPlatform("$kotlinw-wrappers-bom:$kotlinWrappersVersion"))
                 implementation("$kotlinw-react")
                 implementation("$kotlinw-react-dom")
-//                implementation("$kotlinw-emotion")
                 implementation("$kotlinw-mui-base")
                 implementation("$kotlinw-mui-material")
                 implementation("$kotlinw-mui-icons-material")
                 implementation(npm("date-fns", "4.1.0"))
+                implementation(npm("@emotion/react", "11.14.0"))
+                implementation(npm("@emotion/styled", "11.14.1"))
                 implementation(npm("@date-io/date-fns", "3.0.0"))
                 implementation(npm("react-share", "~5.3.0"))
                 implementation(npm("mui-nested-menu", "~3.4.0"))

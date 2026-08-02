@@ -33,15 +33,14 @@ ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 COPY --from=my-jdk /customjre $JAVA_HOME
 
-COPY --chmod=777 ./java/build/install/java /app/
+COPY --chmod=777 ./java/build/install/java /app/java
+COPY --chmod=777 ./main/build/dist/js/productionExecutable  /app/java/resources/static
 
-WORKDIR /app/bin
+WORKDIR /app/java/bin
 
 EXPOSE 9090
 
 CMD ["./java"]
-#ENTRYPOINT [ "java", "-jar", "query-gra.jar" ]
-
 
 # sudo docker build -f ./Dockerfile-my-jdk -t borisgra/query-gra:latest .
 # sudo docker buildx build -f ./Dockerfile-my-jdk --progress=plain -t borisgra/query-gra:latest . 2>&1 | tee build.log

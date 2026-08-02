@@ -1,40 +1,40 @@
 @file:JsModule("react-share") // https://www.npmjs.com/package/react-share
 @file:JsNonModule
 
-import react.ComponentClass
+import react.FC
 import react.Props
 
 @JsName("EmailIcon")
-external var emailIcon: ComponentClass<IconProps>
+external var emailIcon: FC<IconProps>
 
 @JsName("EmailShareButton")
-external var emailShareButton: ComponentClass<ShareButtonProps>
+external var emailShareButton: FC<ShareButtonProps>
 
 @JsName("TelegramIcon")
-external var telegramIcon: ComponentClass<IconProps>
+external var telegramIcon: FC<IconProps>
 
 @JsName("TelegramShareButton")
-external var telegramShareButton: ComponentClass<ShareButtonProps>
+external var telegramShareButton: FC<ShareButtonProps>
 
 @JsName("ViberShareButton")
-external var viberShareButton: ComponentClass<ShareButtonProps>
+external var viberShareButton: FC<ShareButtonProps>
 
 @JsName("ViberIcon")
-external var viberIcon: ComponentClass<IconProps>
+external var viberIcon: FC<IconProps>
 
 @JsName("VKShareButton")
-external var vkShareButton: ComponentClass<ShareButtonProps>
+external var vkShareButton: FC<ShareButtonProps>
 
 @JsName("VKIcon")
-external var vkIcon: ComponentClass<IconProps>
+external var vkIcon: FC<IconProps>
 
 @JsName("WhatsappShareButton")
-external var whatsappShareButton: ComponentClass<ShareButtonProps>
+external var whatsappShareButton: FC<ShareButtonProps>
 
 @JsName("WhatsappIcon")
-external var whatsappIcon: ComponentClass<IconProps>
+external var whatsappIcon: FC<IconProps>
 
-external interface ShareButtonProps : Props {
+external interface ShareButtonProps : react.PropsWithChildren { // Gemini
     var url: String
 }
 

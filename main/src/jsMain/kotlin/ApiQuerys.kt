@@ -7,9 +7,9 @@ import kotlinx.browser.window
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.statement.*
+import kotlinx.coroutines.suspendCancellableCoroutine
 
 external fun decodeURIComponent(encodedURI: String): String // https://discuss.kotlinlang.org/t/where-is-decodeuricomponent-defined/6079
 
@@ -47,7 +47,7 @@ suspend fun checkPassw(url: String, passw: String, endpoint: String?):Boolean =
 
 suspend fun loadByPost(url: String, endpoint: String?, parameter: Any = emptyMap<String,String>()): HttpResponse =
     coroutineScope {
-        suspendCoroutine { continuation ->
+        suspendCancellableCoroutine { continuation ->
             endpoint?.let {
                 launch {
                     continuation.resume(

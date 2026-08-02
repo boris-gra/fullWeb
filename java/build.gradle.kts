@@ -1,7 +1,11 @@
-//+++ java/build.gradle.kts (修改后)
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
+import java.text.SimpleDateFormat
+import java.util.*
+import java.io.FileOutputStream
+import java.io.IOException
+import java.util.Properties
 val ktorVersion = "3.5.0"
 val serializationVersion = "1.11.0"
 
@@ -53,6 +57,7 @@ sourceSets {
 
 application {
     mainClass.set("ServerKt")
+    myProp()
 }
 
 tasks.withType<KotlinJvmCompile>().configureEach {
@@ -76,3 +81,57 @@ distributions {
 tasks.register("stage") {
     dependsOn(tasks.getByName("installDist"))
 }
+
+//tasks.named("processResources") {
+//    dependsOn(":main:browserDevelopmentWebpack")
+//    from(project(":main").layout.buildDirectory.dir("dist/js/developmentExecutable"))
+//    into(layout.projectDirectory.dir("src/main/resources/static"))
+//}
+
+
+//https://stackoverflow.com/questions/35421699/how-to-invoke-external-command-from-within-kotlin-code/41495542#41495542
+fun String.runCommand(
+    workingDir: File = File("."),
+    timeoutAmount: Long = 60,
+    timeoutUnit: TimeUnit = TimeUnit.SECONDS
+) = runCatching {
+    ProcessBuilder("\\s".toRegex().split(this))
+        .directory(workingDir)
+        .redirectOutput(ProcessBuilder.Redirect.PIPE)
+        .redirectError(ProcessBuilder.Redirect.PIPE)
+        .start().also { it.waitFor(timeoutAmount, timeoutUnit) }
+        .inputStream.bufferedReader().readText()
+}.onFailure { it.printStackTrace() }.getOrNull()
+    ?.replace("\n", "") ?: ""
+
+fun gitCommitHash() =
+    "git rev-parse --verify --short HEAD"
+        .runCommand()
+
+fun lastNumberCommit() =
+    "git rev-list --first-parent --count HEAD" // current HEAD commit
+        .runCommand()
+fun nodeVer() =
+    "node -v".runCommand()
+fun myProp() = // https://mkyong.com/java/java-properties-file-examples/
+    try {
+        if (version != "") {
+            FileOutputStream("./java/src/jvmMain/kotlin/config.properties")
+                .use { output ->
+                    Properties()
+                        .let {
+                            it.setProperty(
+                                "git.version",
+                                "$version.${lastNumberCommit()}-${gitCommitHash()}"+
+//                                        " node.${"node -v".runCommand()}" +
+                                        " Compile on ${SimpleDateFormat("dd.MM.yyyy HH:mm")
+                                            .format(Date())}"
+                            )
+                            it.store(output, null)
+                            println(it.getProperty("git.version"))
+                        }
+                }
+        } else ""
+    } catch (e: IOException) {
+        println("Gradle:my config.properties ERROR ${e.message}")
+    }

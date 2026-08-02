@@ -5,7 +5,7 @@
 import react.*
 
 @JsName("AgGridReact")
-external var agGreed: ComponentClass<ReactGridProps>
+external var agGreed: ElementType<ReactGridProps>
 
 external interface ReactGridProps : Props {
     var columnDefs: Array<Any>

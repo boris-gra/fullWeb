@@ -3,6 +3,8 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
+//import java.io.File
+
 //import javax.script.ScriptEngineManager
 
 var message = ""
@@ -10,6 +12,9 @@ var loadTestingKeys = ""
 
 fun Route.getAndPost() {
     //https://ktor.io/docs/routing.html#parameters
+//    staticFiles("/main", File("/app/main")) {
+//        default("index.html")
+//    }
     post(JSR223) {
         rowFieldsValueMap = call.receive()
         call.respond(

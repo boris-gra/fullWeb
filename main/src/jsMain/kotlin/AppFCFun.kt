@@ -4,58 +4,55 @@ import io.ktor.client.call.*
 import react.*
 import kotlinx.browser.window
 import kotlinx.coroutines.*
-import kotlinx.datetime.internal.JSJoda.LocalDate
-import kotlinx.datetime.internal.JSJoda.DateTimeFormatter
-import kotlinx.datetime.internal.JSJoda.Instant
-import kotlinx.datetime.internal.JSJoda.ZoneId
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.format.*
 import kotlin.js.Date
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.js.json
+import kotlin.time.Duration.Companion.milliseconds
 
 var dateFormat: String? = null
 
 fun ChildrenBuilder.shareButtons() {
-    "$endpoint?q=${urlInput.replace(" ", "%20")}"
-        .let { urlFull ->
-            emailShareButton {
-                url = urlFull
-                emailIcon {
-                    size = HEIGHT.toInt()
-                    round = false
-                }
-            }
-            telegramShareButton {
-                url = urlFull
-                telegramIcon {
-                    size = HEIGHT.toInt()
-                    round = true
-                }
-            }
-            viberShareButton {
-                url = urlFull
-                viberIcon {
-                    size = HEIGHT.toInt()
-                    round = true
-                }
-            }
-            vkShareButton {
-                url = urlFull
-                vkIcon {
-                    size = HEIGHT.toInt()
-                    round = true
-                }
-            }
-            whatsappShareButton {
-                url = urlFull
-                whatsappIcon {
-                    size = HEIGHT.toInt()
-                    round = true
-                }
-            }
-        }
-}
+    val urlFull = "$endpoint?q=${urlInput.replace(" ", "%20")}"
 
+    emailShareButton {
+        url = urlFull
+        emailIcon  {
+            size = HEIGHT.toInt()
+            round = true
+        }
+    }
+    telegramShareButton {
+        url = urlFull
+        telegramIcon {
+            size = HEIGHT.toInt()
+            round = true
+        }
+    }
+    viberShareButton {
+        url = urlFull
+        viberIcon  {
+            size = HEIGHT.toInt()
+            round = true
+        }
+    }
+    vkShareButton {
+        url = urlFull
+        vkIcon {
+            size = HEIGHT.toInt()
+            round = true
+        }
+    }
+    whatsappShareButton {
+        url = urlFull
+        whatsappIcon {
+            size = HEIGHT.toInt()
+            round = true
+        }
+    }
+}
 suspend fun refreshRow(
     gridApi: ApiAG?,
 ) {
@@ -83,7 +80,7 @@ fun addNewQuery(
     ).let { newQuery ->
         scope.launch {
             setStateMap("resultUpdate", TRYING_TO_SAVE)
-            delay(1000)
+            delay(1000.milliseconds)
             val rez = saveRow(newQuery, mapOf("0" to "ins"), urlQuerys, endpoint_service_url).body<String>()
             viewResult(rez)
             refreshMenuItems()
@@ -94,7 +91,7 @@ fun addNewQuery(
 suspend fun viewResult(rez: String) {
     if (rez == UPDATE_BASE_SUCCESS) {
         setStateMap("resultUpdate", UPDATE_BASE_SUCCESS)
-        delay(3000)
+        delay(3000.milliseconds)
         setStateMap("resultUpdate", "")
     } else
         window.alert(rez)
@@ -122,7 +119,7 @@ fun rowSelected() = { params: ParamsAG ->
 }
 
 fun valueChanged(rowList: Array<Any>) = { params: ParamsAG ->
-    // newValue ALWAYSE Strings !!?? - problem in BigQuery (string to int,float and vice versa)
+    // newValue ALWAYS Strings !!?? - problem in BigQuery (string to int,float and vice versa)
     params.data[params.colDef.field] =
         js("params.oldValue != undefined && params.oldValue.length == undefined ? parseFloat(params.newValue) : ''+params.newValue")
 
@@ -176,7 +173,7 @@ suspend fun arrayOfColumnDefs(rows: Array<Any>): Array<Any> =
         ?.filter { it.isNotBlank() }
         ?.mapIndexed { i, columnStr ->
             columnStr.split(",")
-                .associate { nameValue(it).let{it.name to  it.value}}
+                .associate { nameValue(it).let{ w -> w.name to  w.value}}
                 .let { columnMap ->
                     val cellEditorParams = setEditor(columnMap["cellEditor"], columnMap["cellEditorParams"] ?: "")
                     json(Pair("field", "${columnMap["field"]}"))
@@ -230,32 +227,94 @@ private fun getCellClass(cellClass: String? = "") = { params: ParamsAG ->
 }
 
 fun filterParams() = { filterLocalDateAtMidnight: Date, cellValue: String ->
-    println("cellValue=$cellValue")
-    strToDate(cellValue).compareTo(fromDateToLocalDate(filterLocalDateAtMidnight))
+    strToDate(cellValue).compareTo(strToDate(filterLocalDateAtMidnight.toLocaleDateString()))
 }
 
-fun fromDateToLocalDate(date: Date): LocalDate { // https://refactorizando.com/en/convert-date-localdate-localdatetim-java/
-    return Instant.ofEpochMilli(date.getTime())
-        .atZone(ZoneId.systemDefault())
-        .toLocalDate()
-}
+private val dateTimeFormats = listOf(
+    LocalDateTime.Format {
+        year(); char('-'); monthNumber(); char('-'); day(padding = Padding.ZERO)
+        char('T'); hour(); char(':'); minute(); char(':'); second()
+    },
+    LocalDateTime.Format {
+        year(); char('/'); monthNumber(); char('/'); day(padding = Padding.ZERO)
+        char('T'); hour(); char(':'); minute(); char(':'); second()
+    },
+    LocalDateTime.Format {
+        year(); char('.'); monthNumber(); char('.'); day(padding = Padding.ZERO)
+        char('T'); hour(); char(':'); minute(); char(':'); second()
+    },
+    LocalDateTime.Format {
+        day(padding = Padding.ZERO); char('/'); monthNumber(); char('/'); year()
+        char(' '); hour(); char(':'); minute(); char(':'); second()
+    },
+    LocalDateTime.Format {
+        day(padding = Padding.ZERO); char('-'); monthNumber(); char('-'); year()
+        char(' '); hour(); char(':'); minute(); char(':'); second()
+    },
+    LocalDateTime.Format {
+        day(padding = Padding.ZERO); char('.'); monthNumber(); char('.'); year()
+        char(' '); hour(); char(':'); minute(); char(':'); second()
+    }
+)
 
-fun strToDate(cellValue: String) = run {
-    dateFormat = dateFormat ?:
-    if (cellValue.indexOf(".") == 2 && cellValue.length == 10)
-        "dd.MM.yyyy"
-    else if (cellValue.indexOf("/") == 2 && cellValue.length == 10)
-        "dd/MM/yyyy"
-    else if (cellValue.indexOf("-") == 2 && cellValue.length == 10)
-        "dd-MM-yyyy"
-    else if (cellValue.indexOf("/") == 4  && cellValue.length > 18)
-        "yyyy/MM/dd'T'HH:mm:ss"
-    else if (cellValue.indexOf(".") == 4  && cellValue.length > 18)
-        "yyyy.MM.dd'T'HH:mm:ss"
-    else "yyyy-MM-dd'T'HH:mm:ss"
-    cellValue
-        .let { if (it.length > 19) it.slice(0..18) else it }  // delete all after second
-        .let { LocalDate.parse(it, DateTimeFormatter.ofPattern(dateFormat!!)) }
+private val dateFormats = listOf(
+    // dd/MM/yy
+    LocalDate.Format {
+        day(padding = Padding.ZERO); char('/'); monthNumber(); char('/'); yearTwoDigits(baseYear = 2000)
+    },
+    // dd.MM.yy
+    LocalDate.Format {
+        day(padding = Padding.ZERO); char('.'); monthNumber(); char('.'); yearTwoDigits(baseYear = 2000)
+    },
+    // dd-MM-yy
+    LocalDate.Format {
+        day(padding = Padding.ZERO); char('-'); monthNumber(); char('-'); yearTwoDigits(baseYear = 2000)
+    },
+    // yy/MM/dd
+    LocalDate.Format {
+        yearTwoDigits(baseYear = 2000); char('/'); monthNumber(); char('/'); day(padding = Padding.ZERO)
+    },
+    // yyyy-MM-dd
+    LocalDate.Format {
+        year(); char('-'); monthNumber(); char('-'); day(padding = Padding.ZERO)
+    },
+    // dd/MM/yyyy
+    LocalDate.Format {
+        day(padding = Padding.ZERO); char('/'); monthNumber(); char('/'); year()
+    },
+    // dd-MM-yyyy
+    LocalDate.Format {
+        day(padding = Padding.ZERO); char('-'); monthNumber(); char('-'); year()
+    },
+    // yyyy/MM/dd
+    LocalDate.Format {
+        year(); char('/'); monthNumber(); char('/'); day(padding = Padding.ZERO)
+    },
+    // dd.MM.yyyy
+    LocalDate.Format {
+        day(padding = Padding.ZERO); char('.'); monthNumber(); char('.'); year()
+    }
+)
+
+fun strToDate(cellValue: String): LocalDate {
+    val hasTimeIndicators = cellValue.contains('T') || cellValue.contains(':') || cellValue.contains(' ')
+    val isLikelyDateTime = cellValue.length > 10 || hasTimeIndicators
+
+    if (isLikelyDateTime) {
+        for (format in dateTimeFormats) {
+            format.parseOrNull(cellValue)?.let { dateTime ->
+                return dateTime.date
+            }
+        }
+    }
+
+    for (format in dateFormats) {
+        format.parseOrNull(cellValue)?.let { date ->
+            return date
+        }
+    }
+
+    throw IllegalArgumentException("Unsupported date format: '$cellValue'")
 }
 
 fun dateComparator() =
@@ -317,7 +376,7 @@ fun lunchQuery(
                     addToHistory(query)
                 }
             setStateMap("resultUpdate", "")
-            delay(500)
+            delay(500.milliseconds)
             gridApi!!.getDisplayedRowAtIndex(0).setSelected(true)
         }
     }
@@ -453,7 +512,7 @@ fun refreshMenuItems(load: Boolean = true, first: Boolean = false) =
                     override var _sql: String? = it._sql
                 }
             }
-            .filter { !it.heading.contains("{") }  // block not inserted parameters  ( {..} )
+            .filter { !it.heading.contains("{") }  // block not inserted parameters  ( {...} )
             .toTypedArray()
         )
         if (first) lunchQuery(
