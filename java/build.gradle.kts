@@ -1,3 +1,5 @@
+import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.language.jvm.tasks.ProcessResources
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
@@ -34,6 +36,7 @@ kotlin {
 sourceSets {
     main{
         kotlin.srcDir("src/jvmMain/kotlin")
+        resources.srcDir("src/jvmMain/resources")
         dependencies {
             implementation(kotlin("stdlib"))
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
@@ -57,7 +60,35 @@ sourceSets {
 
 application {
     mainClass.set("ServerKt")
+    // Name of the start scripts (bin/query-gra) matching the distribution and Docker/Procfile paths
+    applicationName = "query-gra"
     myProp()
+}
+
+// Package the :main frontend build (main.js + index.html + css + img) into this server's
+// classpath resources so the Ktor server can serve the whole application (frontend + API)
+// on a single port. The server then serves the frontend via staticResources().
+//
+// Production  mode (installDist, build): uses jsBrowserProductionWebpack (minimized, optimized)
+// Development mode (gradle run):         uses jsBrowserDevelopmentWebpack  (source maps, fast)
+//
+// Dependencies and sources are set dynamically in taskGraph.whenReady below so that
+// only one of the two webpack tasks ends up in the graph (avoiding implicit-dependency
+// warnings between prod/dev compile-sync tasks).
+tasks.named<ProcessResources>("processResources") {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+gradle.taskGraph.whenReady {
+    tasks.named<ProcessResources>("processResources").configure {
+        if (hasTask(":java:run")) {
+            dependsOn(":main:jsBrowserDevelopmentWebpack")
+            from(project(":main").layout.buildDirectory.dir("kotlin-webpack/js/developmentExecutable"))
+        } else {
+            dependsOn(":main:jsBrowserProductionWebpack")
+            from(project(":main").layout.buildDirectory.dir("dist/js/productionExecutable"))
+        }
+    }
 }
 
 tasks.withType<KotlinJvmCompile>().configureEach {
@@ -69,6 +100,8 @@ tasks.withType<KotlinJvmCompile>().configureEach {
 
 distributions {
     main {
+        // Keep the historically used distribution/binary name (Dockerfiles, Procfile)
+        distributionBaseName.set("query-gra")
         contents {
             from("$projectDir/libs") {
                 rename("${rootProject.name}-jvm", rootProject.name)
@@ -81,13 +114,6 @@ distributions {
 tasks.register("stage") {
     dependsOn(tasks.getByName("installDist"))
 }
-
-//tasks.named("processResources") {
-//    dependsOn(":main:browserDevelopmentWebpack")
-//    from(project(":main").layout.buildDirectory.dir("dist/js/developmentExecutable"))
-//    into(layout.projectDirectory.dir("src/main/resources/static"))
-//}
-
 
 //https://stackoverflow.com/questions/35421699/how-to-invoke-external-command-from-within-kotlin-code/41495542#41495542
 fun String.runCommand(
@@ -116,7 +142,7 @@ fun nodeVer() =
 fun myProp() = // https://mkyong.com/java/java-properties-file-examples/
     try {
         if (version != "") {
-            FileOutputStream("./java/src/jvmMain/kotlin/config.properties")
+            FileOutputStream("./java/src/jvmMain/resources/config.properties")
                 .use { output ->
                     Properties()
                         .let {

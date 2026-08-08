@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
-
 val serializationVersion = "1.11.0"
 val ktorVersion = "3.5.0"
 val kotlinWrappersVersion = "2026.6.10"
@@ -66,7 +64,3 @@ kotlin {
     }
 }
 
-// Alias webpack config
-tasks.withType<KotlinWebpack>().configureEach {
-    dependsOn(":java:processResources")
-}

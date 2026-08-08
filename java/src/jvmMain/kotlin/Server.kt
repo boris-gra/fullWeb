@@ -8,7 +8,6 @@ import io.ktor.server.plugins.compression.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.routing.*
-import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
@@ -42,9 +41,9 @@ fun main() {
         }
         routing {
             getAndPost()
-            staticFiles("/", File("")) {
-                staticResources("/", null)
-            }
+            // Serve the frontend (index.html, main.js, css/, img/) from the classpath.
+            // The :java:processResources task copies the :main production build here.
+            staticResources("/", null)
         }
     }.start(wait = true)
 }
@@ -52,14 +51,14 @@ fun main() {
 private fun loadEnv(loader:ClassLoader) = // https://mkyong.com/java/java-properties-file-examples/
     try {
         startEnv[GIT_VERSION] = "??? git.version=1.2.9-49c99c1 Compile on 28.07.2026 16:26"
-        loader.getResourceAsStream("resources/config.properties")
+        loader.getResourceAsStream("config.properties")
 //        Thread.currentThread().getContextClassLoader().getResourceAsStream("config.properties")
         ?.use { input ->
             Properties()
                 .let {
                     it.load(input)
                     startEnv[GIT_VERSION] =
-                        "ver:${it.getProperty(GIT_VERSION) ?: ""}  (Start on ${SimpleDateFormat("dd.MM.yyyy").format(Date())})"
+                        "ver:${it.getProperty(GIT_VERSION).replace("\\","")}  (Start on ${SimpleDateFormat("dd.MM.yyyy").format(Date())})"
             }
         }
         startEnv[JSR223] = System.getenv(JSR223) ?: HIDE

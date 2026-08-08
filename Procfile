@@ -1,1 +1,1 @@
-web: ./build/install/query-gra/bin/query-gra
+web: ./java/build/install/query-gra/bin/query-gra
