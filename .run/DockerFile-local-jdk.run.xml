@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="DockerFile-my-jdk" type="docker-deploy" factoryName="dockerfile" server-name="Docker-22.04">
+  <configuration default="false" name="DockerFile-local-jdk" type="docker-deploy" factoryName="dockerfile" server-name="Docker-22.04">
     <deployment type="dockerfile">
       <settings>
         <option name="imageTag" value="borisgra/query-gra:my-jdk" />
@@ -25,8 +25,8 @@
       </settings>
     </deployment>
     <method v="2">
-      <option name="Gradle.BeforeRunTask" enabled="true" tasks=":main:build" externalProjectPath="$PROJECT_DIR$/main" vmOptions="" scriptParameters="" />
-      <option name="Gradle.BeforeRunTask" enabled="true" tasks="installDist" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
+      <option name="Gradle.BeforeRunTask" enabled="false" tasks=":main:build" externalProjectPath="$PROJECT_DIR$/main" vmOptions="" scriptParameters="" />
+      <option name="Gradle.BeforeRunTask" enabled="false" tasks="installDist" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
     </method>
   </configuration>
 </component>

@@ -1,6 +1,6 @@
 val serializationVersion = "1.11.0"
-val ktorVersion = "3.5.0"
-val kotlinWrappersVersion = "2026.6.10"
+val ktorVersion = "3.5.2"
+val kotlinWrappersVersion = "2026.7.7" // 8.0 not work (12 min :kotlinNpmInstall with error)
 val kotlinw = "org.jetbrains.kotlin-wrappers:kotlin"
 
 plugins {
@@ -15,7 +15,7 @@ repositories {
 kotlin {
     sourceSets.all {
         languageSettings {
-            languageVersion = "2.2"
+            languageVersion = "2.4"
         }
     }
 
@@ -43,7 +43,7 @@ kotlin {
                 implementation("io.ktor:ktor-client-serialization-js:$ktorVersion")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
                 implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.8.0")
                 implementation(project.dependencies.enforcedPlatform("$kotlinw-wrappers-bom:$kotlinWrappersVersion"))
                 implementation("$kotlinw-react")
@@ -51,14 +51,14 @@ kotlin {
                 implementation("$kotlinw-mui-base")
                 implementation("$kotlinw-mui-material")
                 implementation("$kotlinw-mui-icons-material")
-                implementation(npm("date-fns", "4.1.0"))
+                implementation(npm("date-fns", "4.4.0"))
                 implementation(npm("@emotion/react", "11.14.0"))
                 implementation(npm("@emotion/styled", "11.14.1"))
-                implementation(npm("@date-io/date-fns", "3.0.0"))
+                implementation(npm("@date-io/date-fns", "3.2.1"))
                 implementation(npm("react-share", "~5.3.0"))
-                implementation(npm("mui-nested-menu", "~3.4.0"))
-                implementation(npm("ag-grid-community", "~36.0.0"))
-                implementation(npm("ag-grid-react", "~36.0.0"))
+                implementation(npm("mui-nested-menu", "~4.0.3"))
+                implementation(npm("ag-grid-community", "~36.1.0"))
+                implementation(npm("ag-grid-react", "~36.1.0"))
             }
         }
     }

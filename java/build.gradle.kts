@@ -8,7 +8,7 @@ import java.util.*
 import java.io.FileOutputStream
 import java.io.IOException
 import java.util.Properties
-val ktorVersion = "3.5.0"
+val ktorVersion = "3.5.2"
 val serializationVersion = "1.11.0"
 
 plugins {
@@ -18,7 +18,7 @@ plugins {
 }
 
 group = "org.example"
-version = "1.2"
+version = "1.3-2.4.10"
 
 repositories {
     mavenCentral()
@@ -50,10 +50,10 @@ sourceSets {
             implementation("io.ktor:ktor-serialization:$ktorVersion")
             implementation("io.ktor:ktor-server-core:$ktorVersion")
             implementation("io.ktor:ktor-server-netty:$ktorVersion")
-            implementation("ch.qos.logback:logback-classic:1.5.12")
+            implementation("ch.qos.logback:logback-classic:1.6.1")
             implementation("io.ktor:ktor-websockets:$ktorVersion")
-            implementation("org.postgresql:postgresql:42.7.4")
-            implementation("com.google.cloud:google-cloud-bigquery:2.44.0")
+            implementation("org.postgresql:postgresql:42.7.13")
+            implementation("com.google.cloud:google-cloud-bigquery:2.69.0")
         }
     }
 }
