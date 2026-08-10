@@ -1,6 +1,6 @@
 val serializationVersion = "1.11.0"
 val ktorVersion = "3.5.2"
-val kotlinWrappersVersion = "2026.7.7" // 8.0 not work (12 min :kotlinNpmInstall with error)
+val kotlinWrappersVersion = "2026.8.0"
 val kotlinw = "org.jetbrains.kotlin-wrappers:kotlin"
 
 plugins {
@@ -19,7 +19,7 @@ kotlin {
         }
     }
 
-    js() {
+    js {
         browser {
             binaries.executable()
         }
@@ -61,6 +61,24 @@ kotlin {
                 implementation(npm("ag-grid-react", "~36.1.0"))
             }
         }
+    }
+}
+
+val generateYarnrc = tasks.register("generateYarnrc") {
+    description = "create .yarnrc  (uses in kotlinNpmInstall)"
+    val outputDir = layout.buildDirectory.dir("js")
+    val outputFile = outputDir.map { it.file(".yarnrc") }
+
+    outputs.file(outputFile) // for cash and up-to-date check
+
+    doLast {
+        outputDir.get().asFile.mkdirs()
+        outputFile.get().asFile.writeText(
+            """
+            network-timeout 600000
+            registry "https://registry.npmmirror.com"
+            """.trimIndent()
+        )
     }
 }
 
