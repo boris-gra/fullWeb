@@ -72,13 +72,11 @@ application {
 // Production  mode (installDist, build): uses jsBrowserProductionWebpack (minimized, optimized)
 // Development mode (gradle run):         uses jsBrowserDevelopmentWebpack  (source maps, fast)
 //
-tasks.named<ProcessResources>("processResources") {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
 
 val isDevelopmentRun = gradle.startParameter.taskNames.any { it == ":java:run" }
 
 tasks.named<ProcessResources>("processResources") {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     if (isDevelopmentRun) {
         dependsOn(":main:jsBrowserDevelopmentWebpack")
         from(project(":main").layout.buildDirectory.dir("kotlin-webpack/js/developmentExecutable"))
