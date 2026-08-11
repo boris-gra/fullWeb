@@ -15,6 +15,7 @@ import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.ul
 import mui.material.*
 import kotlin.js.json
+import kotlin.time.Duration.Companion.milliseconds
 
 external interface QueryI {
     var id: Int
@@ -391,7 +392,7 @@ val AppClients = FC<Props> {
                 if (NewValue.isNotEmpty() && window.confirm(SAVE_TO_SERVER))
                     scope.launch {
                         setStateMap("resultUpdate", TRYING_TO_SAVE)
-                        delay(1000)
+                        delay(1000.milliseconds)
                         val rez = saveRow(rowList, NewValue, urlInput, endpoint_service_url).body<String>()
                         refreshRow(gridApi)
                         viewResult(rez)

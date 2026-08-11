@@ -72,22 +72,20 @@ application {
 // Production  mode (installDist, build): uses jsBrowserProductionWebpack (minimized, optimized)
 // Development mode (gradle run):         uses jsBrowserDevelopmentWebpack  (source maps, fast)
 //
-// Dependencies and sources are set dynamically in taskGraph.whenReady below so that
-// only one of the two webpack tasks ends up in the graph (avoiding implicit-dependency
-// warnings between prod/dev compile-sync tasks).
 tasks.named<ProcessResources>("processResources") {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-gradle.taskGraph.whenReady {
-    tasks.named<ProcessResources>("processResources").configure {
-        if (hasTask(":java:run")) {
-            dependsOn(":main:jsBrowserDevelopmentWebpack")
-            from(project(":main").layout.buildDirectory.dir("kotlin-webpack/js/developmentExecutable"))
-        } else {
-            dependsOn(":main:jsBrowserProductionWebpack")
-            from(project(":main").layout.buildDirectory.dir("dist/js/productionExecutable"))
-        }
+val isDevelopmentRun = gradle.startParameter.taskNames.any { it == ":java:run" }
+
+tasks.named<ProcessResources>("processResources") {
+    if (isDevelopmentRun) {
+        dependsOn(":main:jsBrowserDevelopmentWebpack")
+        from(project(":main").layout.buildDirectory.dir("kotlin-webpack/js/developmentExecutable"))
+        from(project(":main").layout.buildDirectory.dir("processedResources/js/main"))
+    } else {
+        dependsOn(":main:build")
+        from(project(":main").layout.buildDirectory.dir("dist/js/productionExecutable"))
     }
 }
 

@@ -24,9 +24,6 @@
         <option name="sourceFilePath" value="Dockerfile-my-jdk" />
       </settings>
     </deployment>
-    <method v="2">
-      <option name="Gradle.BeforeRunTask" enabled="false" tasks=":main:build" externalProjectPath="$PROJECT_DIR$/main" vmOptions="" scriptParameters="" />
-      <option name="Gradle.BeforeRunTask" enabled="false" tasks="installDist" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
-    </method>
+    <method v="2" />
   </configuration>
 </component>
