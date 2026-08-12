@@ -8,5 +8,5 @@ pluginManagement {
 
 rootProject.name = "fullWeb"
 
-include(":main", ":java")
+include(":main", ":java", ":shared")
 

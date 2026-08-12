@@ -39,6 +39,7 @@ sourceSets {
         resources.srcDir("src/jvmMain/resources")
         dependencies {
             implementation(kotlin("stdlib"))
+            implementation(project(":shared"))
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
 //            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.8.0")
