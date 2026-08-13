@@ -13,17 +13,19 @@
 <!--    replace in Main.kt    requireAll(require.context("ag-grid-community/styles", true, js("/\\.css$/")))-->
 
     <!--for brython-->
+    <!--
     <script src="https://cdn.jsdelivr.net/npm/brython@3.10.6/brython.min.js">
     </script>
     <script src="https://cdn.jsdelivr.net/npm/brython@3.10.6/brython_stdlib.js">
     </script>
-<!--    <link rel="stylesheet" href="https://brython.info/brython.css">-->
     <link rel="stylesheet" href="css/python.css">
+    -->
 </head>
 <body>
 <script>
-pyTest = "import browser;browser.console.log('Hello Brython!');"
-eval(__BRYTHON__.python_to_js(pyTest));
+// pyTest = "import browser;browser.console.log('Hello Brython!');"
+// eval(__BRYTHON__.python_to_js(pyTest));
+    console.log('Hello for ALL!')
 </script>
 <div id="root"></div>
 <script src="main.js"></script>

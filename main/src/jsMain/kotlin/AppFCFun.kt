@@ -103,7 +103,7 @@ fun cellClicked(editIcon: String) = { params: ParamsAG ->
 }
 
 fun rowSelected() = { params: ParamsAG ->
-    if (params.node.selected) {
+    if (params.node.__selected) { // if false previous row
         rowFieldsValueMap.clear()
         params.api.getAllGridColumns()
             .filter {
@@ -348,7 +348,7 @@ fun lunchQuery(
 ) =
     input?.ifBlank { null }?.let { _ ->
         rowFieldsValueString = if (rowFieldsValueMap.size == 2)
-            getParameter(ROW_FIELDS_VALUE_PARAM) ?: ""
+            getParameter(ROW_FIELDS_VALUE_PARAM) ?: fieldsValue
         else
             fieldsValue
         if (rowFieldsValueString.isNotEmpty())

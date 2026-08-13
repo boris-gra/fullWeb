@@ -82,7 +82,7 @@ external interface ApiAG {
 
 external interface Node {
     var id: dynamic
-    var selected: Boolean
+    var __selected: Boolean // previous - selected
     var data: dynamic
     var setSelected: (Boolean) -> Unit
 }
