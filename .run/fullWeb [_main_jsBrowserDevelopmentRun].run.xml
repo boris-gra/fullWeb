@@ -1,19 +1,19 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="jvm-js-fullstack [jsBrowserDevelopmentRun]" type="GradleRunConfiguration" factoryName="Gradle" activateToolWindowBeforeRun="false">
+  <configuration default="false" name="fullWeb [:main:jsBrowserDevelopmentRun]" type="GradleRunConfiguration" factoryName="Gradle">
     <ExternalSystemSettings>
       <option name="executionName" />
       <option name="externalProjectPath" value="$PROJECT_DIR$" />
       <option name="externalSystemIdString" value="GRADLE" />
-      <option name="scriptParameters" value="" />
+      <option name="scriptParameters" value="-t" />
       <option name="taskDescriptions">
         <list />
       </option>
       <option name="taskNames">
         <list>
-          <option value="jsBrowserDevelopmentRun" />
+          <option value=":main:jsBrowserDevelopmentRun" />
         </list>
       </option>
-      <option name="vmOptions" value="" />
+      <option name="vmOptions" />
     </ExternalSystemSettings>
     <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
     <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
