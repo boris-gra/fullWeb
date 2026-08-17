@@ -4,6 +4,7 @@
 - Настройка постоянной памяти Cline (Memory Bank + правила `.clinerules/`), чтобы контекст проекта сохранялся между чатами.
 
 ## Последние действия
+- Создан скилл Cline `open-menu` (`.clinerules/skills/open-menu.md`): преобразование скрипта `.cline_scripts/cdp-open-menu.ps1` в скилл. В скилле — frontmatter (name/description), инструкции «когда использовать / как использовать / параметры / ошибки» и полная копия скрипта (побайтово идентична оригиналу; используется для воссоздания `.cline_scripts/cdp-open-menu.ps1`, если файл отсутствует). Обновлён `.clinerules/project.md` (секция навигации по меню → скилл `open-menu` как основной способ).
 - Навигация в приложении через CDP (вкладка «Querys», https://query.boris-gra.xyz/): клик по кнопке MENU → наведение на «All Query» → наведение на «Feed (querym)» → клик по «foods All». Подменю раскрываются наведением (mouseenter/mouseover через Runtime.evaluate). Результат: таблица foods (402 строки, 22 страницы). Скриншот: `Screen004.png` (открыт в новой вкладке браузера).
 - Ещё навигация: MENU → All Query → Feed (querym) → «Clients - fullWeb». Результат: таблица clients (34 строки, 2 страницы), колонки id, pers, STATUS !, person_name, user_mail, write_date, android_id, Write User. Скриншот: `Screen005.png`.
 - Создан универсальный PowerShell-скрипт `.cline_scripts/cdp-open-menu.ps1` (папка `.cline_scripts` для скриптов Cline в корне проекта): раскрывает любую ветку меню через CDP (клик MENU + наведения по подменю, клик последнего пункта) БЕЗ скриншота. Параметры: `-MenuPath` (массив пунктов), `-TabPattern`, `-Port`, `-WaitMs`, `-HoverLast` (последний пункт только наводить). Пример: `.\cline_scripts\cdp-open-menu.ps1 -MenuPath @('MENU','All Query','Feed (querym)','Clients - fullWeb')`. Проверен на ветках foods All (402) и Clients - fullWeb (34).
@@ -23,5 +24,5 @@
 - Общаться с пользователем на русском языке.
 - Вкладка «Querys» в браузере — это рабочее приложение (https://query.boris-gra.xyz/).
 - Скриншоты вкладок делать ТОЛЬКО через CDP (порт 9222) по рецепту из `.clinerules/project.md`, НЕ через browser-bridge.
-- Логи чата: папка `.cline_chat-logs`, имя `chat-log-YYYY-MM-DD-HH-MM.txt` (HH-MM = время начала чата). Лог формировать для каждого чата ТОЛЬКО если пользователь попросил об этом в начале чата; иначе не формировать. Правило — в `.clinerules/project.md`.
-- Пример лога: `.cline_chat-logs/chat-log-2026-08-17-11-39.txt` (текущий чат).
+- Логи чата: папка `.cline_chat-logs`, имя `chat-log-YYYY-MM-DD-HH-MM.txt` (HH-MM = время начала чата). **Действующая договорённость (17.08.2026): вести лог для КАЖДОГО чата, пока пользователь не отменит** (правило в `.clinerules/project.md`).
+- Пример лога: `.cline_chat-logs/chat-log-2026-08-17-11-39.txt` (предыдущий чат) и `.cline_chat-logs/chat-log-2026-08-17-14-54.txt` (чат со скиллом open-menu).
