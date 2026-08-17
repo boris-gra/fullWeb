@@ -1,0 +1,18 @@
+﻿==== Чат 2026-08-17 15:23 ====
+
+--- Задача ---
+Открыть ветку меню: MENU -> All Query -> Feed (querym) -> Clients - fullWeb
+
+--- Выполнение ---
+Запущен .cline_scripts/cdp-open-menu.ps1 -MenuPath @('MENU','All Query','Feed (querym)','Clients - fullWeb').
+Шаги: [1/4] Клик MENU -> [2/4] Наведение All Query -> [3/4] Наведение Feed (querym) -> [4/4] Клик Clients - fullWeb.
+Первый снимок: ещё грузилось (0 строк, "Trying to fetch..."). Повторная проверка через ~10 сек:
+- agRows: 19 (видимых), всего 34 строки, пейджер "1 to 19 of 34".
+- Заголовок: "Country codes startwith 'A'".
+- Колонки: id, pers, STATUS !, person_name, ...
+
+--- Итоги сессии ---
+- Ветка меню открыта, таблица clients (34 строки, 2 страницы) загружена.
+- Скриншот не делался (по запросу — только навигация).
+
+
