@@ -17,3 +17,5 @@
 /package-lock.json
 /package.json
 /Screen*.png
+/.cline_chat-logs/
+/.cline_tmp_*
