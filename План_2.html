@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>План улучшений подпроекта java (бэкенд query-gra)</title>
+<style>
+  :root { --p0:#c62828; --p1:#e65100; --p2:#1565c0; --p3:#2e7d32; --p4:#6a1b9a; --ink:#1f2430; --muted:#5b6472; --line:#dde3ea; --bg:#f7f9fb; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Arial, sans-serif; color: var(--ink); background: var(--bg); margin: 0; padding: 32px 16px; line-height: 1.55; }
+  .page { max-width: 960px; margin: 0 auto; background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 40px 48px; box-shadow: 0 2px 10px rgba(20,40,80,.06); }
+  h1 { font-size: 26px; margin: 0 0 6px; color: #0d3b66; }
+  h2 { font-size: 20px; margin: 34px 0 10px; padding-bottom: 6px; border-bottom: 2px solid var(--line); }
+  h3 { font-size: 16px; margin: 20px 0 8px; }
+  p { margin: 8px 0; }
+  ul, ol { margin: 8px 0 8px 4px; padding-left: 22px; }
+  li { margin: 5px 0; }
+  code { font-family: Consolas, "Courier New", monospace; background: #eef2f6; border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; font-size: 13px; }
+  .badge { display: inline-block; font-weight: 700; font-size: 12px; color: #fff; border-radius: 4px; padding: 2px 8px; margin-right: 8px; vertical-align: 2px; letter-spacing: .4px; }
+  .b0 { background: var(--p0); } .b1 { background: var(--p1); } .b2 { background: var(--p2); }
+  .b3 { background: var(--p3); } .b4 { background: var(--p4); }
+  .meta { color: var(--muted); font-size: 14px; margin-top: 0; }
+  .card { border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .card.p0 { border-left-color: var(--p0); } .card.p1 { border-left-color: var(--p1); }
+  .card.p2 { border-left-color: var(--p2); } .card.p3 { border-left-color: var(--p3); } .card.p4 { border-left-color: var(--p4); }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 14px; }
+  th, td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; vertical-align: top; }
+  th { background: #f0f4f8; }
+  .note { background: #fff8e1; border: 1px solid #f0e0a0; border-radius: 6px; padding: 12px 16px; margin: 14px 0; font-size: 14px; }
+  .ac { background: #e8f5e9; border: 1px solid #b7dfb9; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  .ac ol { margin: 6px 0; }
+  footer { margin-top: 28px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>План улучшений подпроекта java (бэкенд query-gra)</h1>
+<p class="meta">Сформирован заново по текущему коду, без использования старых «Предложений». Дата: 2026</p>
+
+<h2>Цель</h2>
+<p>Повысить безопасность, надёжность и поддерживаемость JVM-бэкенда (<code>java/</code>: Ktor 3.5.2 + Netty, Kotlin 2.4.10/JVM 25, PostgreSQL + BigQuery, раздаёт фронтенд из classpath).</p>
+
+<h2>Краткая оценка текущего состояния</h2>
+<ul>
+  <li>4 файла: <code>Server.kt</code>, <code>Routes.kt</code>, <code>PgSQL.kt</code>, <code>FromJsonString.kt</code> + <code>build.gradle.kts</code>; тестов нет нигде в проекте.</li>
+  <li>Критично: публичный RCE-маршрут, SQL-инъекции, мутации БД без авторизации, гонки на глобальных мутабельных переменных, утечки JDBC-ресурсов, отсутствие пула соединений.</li>
+  <li>Фронтенд использует контракт: <code>POST /jsr223</code>, <code>POST /loadEnv</code>, <code>POST /bd/{name}/passw</code>, <code>GET/POST /bd/{name}/jsonPG...</code>, <code>GET /</code> — менять контракт нельзя без синхронных правок в <code>main/</code>.</li>
+</ul>
+
+<h2><span class="badge b0">P0</span>Безопасность (критично, делать первым)</h2>
+<div class="card p0">
+<ol>
+  <li><b>Удалить RCE-маршрут <code>GET /com/{command}</code></b> (<code>Routes.kt:36-47</code>): выполняет произвольные OS-команды через <code>Runtime.exec</code> и отдаёт вывод. Удалить совсем; если нужен для отладки — за флагом <code>ENABLE_DEBUG_ROUTES=true</code> + проверка админ-пароля (лучше не оставлять вовсе).</li>
+  <li><b>Авторизация мутаций.</b> <code>POST /bd/{name}/jsonPGupd/{pg_view}/{where?}</code> (<code>Routes.kt:64-73</code>) сейчас без проверки — любой может UPDATE/DELETE/INSERT. Ввести обязательный заголовок <code>X-Admin-Token</code> (значение = <code>ADMIN_PASSW</code> env или подписанный токен), проверку вынести в общий хелпер. Синхронно поправить <code>main/src/jsMain/kotlin/ApiQuerys.kt</code> (передавать токен из adminState при сохранении).</li>
+  <li><b>SQL-инъекции.</b> Заменить построение SQL конкатенацией на <code>PreparedStatement</code> во всех путях:
+    <ul>
+      <li><code>jsonPGview</code> (<code>PgSQL.kt:101-137</code>): <code>where</code> и <code>pg_view</code> подставляются в текст запроса; <code>name</code> интерполируется в <code>where name = '$name'</code>.</li>
+      <li><code>checkInjection</code> (<code>PgSQL.kt:161-164</code>) — чёрный список (<code>OR</code>, <code>;</code>, <code>SELECT</code>…) легко обходится (<code>union select</code>, комментарии, <code>\n</code>, обфускация регистра). Заменить политикой: <b>allowlist</b> имён представлений + строгая валидация <code>where</code>-выражения (разрешённые токены/операторы), параметры — через <code>PreparedStatement</code>.</li>
+      <li><code>insertParameterValue</code> (<code>shared/CommonVars.kt:76-87</code>) — замена <code>{key}</code> сырыми значениями без экранирования. Заменить на подстановку параметров (<code>?</code>), значения передавать отдельно.</li>
+      <li><code>formSQLQuery</code> (<code>PgSQL.kt:183-226</code>): экранирование <code>''</code> в <code>E'...'</code> не покрывает backslash-инъекции (для <code>E</code>-строк <code>\</code> — escape-символ). После перехода на параметризованные запросы экранирование не нужно вовсе.</li>
+    </ul>
+  </li>
+  <li><b>CORS:</b> <code>anyHost()</code> (<code>Server.kt:36</code>) заменить на allowlist из env (<code>CORS_ORIGINS</code>).</li>
+  <li><b>Ограничения входа:</b> лимит размера тела (<code>call.receive</code>), максимальная длина <code>where</code>/<code>pg_view</code>, базовый rate-limiting на мутационные маршруты.</li>
+  <li><b>JSR223</b> (<code>Routes.kt:18-25</code>, <code>runScript</code> 109-118): серверная реализация полностью закомментирована (функция фактически мертва, фронтенд F9 шлёт <code>src</code>). Решить: либо удалить маршрут, либо реализовать на <code>kotlin-scripting-jsr223</code> с песочницей (запрет <code>Runtime</code>, лимит времени/памяти). Рекомендация — реализовать минимально с жёсткими ограничениями, т.к. функция заявлена в help.html.</li>
+</ol>
+</div>
+
+<h2><span class="badge b1">P1</span>Корректность и надёжность</h2>
+<div class="card p1">
+<ol>
+  <li><b>Гонки на глобальном состоянии:</b>
+    <ul>
+      <li><code>FromJsonString.kt:10-16</code>: <code>QUOTE_TYPE</code> и <code>mappingFun</code> — глобалы, выставляемые перед декодированием; два параллельных <code>jsonPGupd</code> с разными кавычками перепутают экранирование → порча данных. Убрать глобалы, передавать <code>quoteType</code>/функцию параметром.</li>
+      <li><code>Routes.kt:19</code>: <code>rowFieldsValueMap = call.receive()</code> — замена общего глобала из <code>shared</code> из тела запроса. Убрать мутацию, держать локально.</li>
+      <li><code>connectionError</code>, <code>message</code>, <code>loadTestingKeys</code>, <code>queryBdName</code>, <code>connectionsMap</code>, <code>startEnv</code> — глобалы без синхронизации. После рефакторинга (P2) состояние живёт в сервисных классах; <code>startEnv</code> — неизменяемый конфиг, читаемый только при старте.</li>
+    </ul>
+  </li>
+  <li><b>Пул соединений и ресурсы:</b> заменить ручной кэш <code>DriverManager</code>-соединений (<code>PgSQL.kt:35-72</code>) на <b>HikariCP</b> (per-база пул, <code>maximumPoolSize</code> из env). Все <code>Statement</code>/<code>ResultSet</code> закрывать через <code>use { }</code> (сейчас утечки в <code>rezSQL</code> 139-159, <code>pgsqlJson</code> 239-256, <code>jsonPGupd</code> 166-181). При retry-ошибке (<code>SQL_STATE_RETRY</code>) закрывать старый коннект перед заменой.</li>
+  <li><b>Баг <code>rezSQL</code>:</b> <code>onFailure { (it as PSQLException) }</code> (<code>PgSQL.kt:156</code>) — не-PSQLException (таймаут, сетевая ошибка) роняет запрос ClassCastException'ом. Проверять <code>is PSQLException</code>.</li>
+  <li><b><code>splitURL</code> (<code>PgSQL.kt:23-33</code>)</b>: хрупкий парсинг по индексам (ломается на IPv6, <code>@</code>/<code>:</code> в пароле). Заменить на разбор через <code>java.net.URI</code> (или передавать готовый JDBC URL).</li>
+  <li><b>SSL root cert</b> (<code>PgSQL.kt:93-98</code>): писать в <code>./$baseName.crt</code> — относительный путь и имя из имени базы (коллизии, read-only ФС контейнера). Писать в <code>java.io.tmpdir</code> с именем по хэшу строки.</li>
+  <li><b>Транзакции для <code>jsonPGupd</code>:</b> сейчас N строк склеены в один много-операторный запрос; при частичной ошибке данные остаются полу-изменёнными. Обернуть в <code>BEGIN/COMMIT/ROLLBACK</code> (или батчи + savepoints). Определение первичных ключей — через JDBC <code>getPrimaryKeys</code> вместо эвристики <code>idFieds</code> (<code>PgSQL.kt:228-231</code>).</li>
+  <li><b>Двойное выполнение при retry:</b> <code>getView</code> (<code>Routes.kt:80-86</code>) вызывает <code>getView(it)</code> дважды при retry-ошибке — выполнить один раз, повторно лишь при реальном восстановлении соединения.</li>
+  <li><b>BigQuery:</b> задать явный таймаут запроса (<code>QueryJobConfiguration.setJobTimeoutMs</code>), закрывать/освобождать job.</li>
+</ol>
+</div>
+
+<h2><span class="badge b2">P2</span>Архитектура и качество кода</h2>
+<div class="card p2">
+<ol>
+  <li>Разбить top-level-функции/глобалы на классы: <code>AppConfig</code> (env-конфиг, валидация при старте), <code>DatabaseManager</code> (пулы, соединения, sslrootcert), <code>SqlBuilder</code> (генерация SQL, allowlist), <code>JsonMapper</code> (чистый <code>fromJsonString</code> без глобалов).</li>
+  <li>Установить <code>StatusPages</code> (единый JSON-формат ошибок вместо сырых 500) и <code>CallLogging</code> (лог с <code>X-Request-ID</code>, без SQL-значений в логах — сейчас <code>println</code> выводит запросы с данными, потенциально PII).</li>
+  <li>Удалить мёртвый код: <code>runScript</code> (всё закомментировано), <code>nodeVer()</code> (<code>build.gradle.kts:137-138</code>, не используется), <code>myProp()</code>-запись в src (см. P3), блок <code>distributions</code> c <code>from("$projectDir/libs")</code> (<code>build.gradle.kts:98-109</code> — папки <code>java/libs</code> не существует), зависимость <code>ktor-websockets</code> (не используется), неиспользуемые константы/импорты.</li>
+  <li><code>errorJson</code> (<code>PgSQL.kt:275-276</code>) строит JSON строкой с <code>replace("\"","")</code> — риск битого JSON; собрать через kotlinx.serialization <code>JsonObject</code>.</li>
+  <li>Добавить <code>GET /healthz</code> → <code>200 {"status":"ok"}</code> (+ проверка пулов) для startup/liveness-проб Cloud Run.</li>
+</ol>
+</div>
+
+<h2><span class="badge b3">P3</span>Сборка (Gradle)</h2>
+<div class="card p3">
+<ol>
+  <li><b><code>myProp()</code> (<code>build.gradle.kts:139-160</code>)</b>: пишет <code>config.properties</code> в <code>java/src/jvmMain/resources</code> на каждую конфигурацию сборки — грязнит git, нерепроизводимо (timestamp), требует git/node на машине сборки, тормозит любую команду (<code>gradle help</code> тоже). Перенести генерацию в <code>build/generated/…</code> (или в ресурсы из build-каталога), файл в <code>src</code> из VCS убрать; версию собирать из <code>version</code> + <code>gitCommitHash()</code> (с fallback, если git недоступен).</li>
+  <li><code>isDevelopmentRun</code> (<code>build.gradle.kts:77</code>) — хрупкая проверка имени таски; заменить на проект-свойство <code>-Pdev</code> (конфигурация-кэш-дружелюбно).</li>
+  <li>Версии — в <b>version catalog</b> (<code>gradle/libs.versions.toml</code>); включить dependency locking для воспроизводимых сборок; <code>group/version</code> в одном месте.</li>
+  <li>Добавить <code>ktlint</code>/<code>detekt</code> и GitHub Actions CI (<code>:java:build :java:test</code>).</li>
+  <li>Упростить связку <code>processResources</code> ↔ <code>:main:build</code> (сохранить логику prod/dev, но без жёсткой привязки к имени таски).</li>
+</ol>
+</div>
+
+<h2><span class="badge b4">P4</span>Тесты (в модуле java нет ни одного)</h2>
+<div class="card p4">
+<ol>
+  <li>Юнит-тесты чистых функций после рефакторинга: парсинг URL, <code>formSQLQuery</code> (без экранирования-глобалов), allowlist-валидатор <code>where</code>, <code>fromJsonString</code>, сборка <code>errorJson</code>, генерация конфига.</li>
+  <li><code>ktor-server-test-host</code> (<code>testApplication</code>): маршруты — <code>401</code> на мутации без токена, отсутствие/закрытость <code>/com/</code>, валидность JSON-ответов.</li>
+  <li>(Опционально) Testcontainers PostgreSQL для интеграционных проверок <code>jsonPGview</code>/<code>jsonPGupd</code> (transaction + параметризация).</li>
+</ol>
+</div>
+
+<h2>Порядок реализации</h2>
+<table>
+  <tr><th>Фаза</th><th>Состав</th><th>Обязательность</th></tr>
+  <tr><td><b>Фаза 1</b> (P0)</td><td>Убрать <code>/com/</code>, добавить токен на мутации (+ правка <code>ApiQuerys.kt</code>), перевести SQL на <code>PreparedStatement</code>+allowlist, CORS-allowlist, лимиты, решить судьбу JSR223.</td><td rowspan="2">Обязательно</td></tr>
+  <tr><td><b>Фаза 2</b> (P1)</td><td>Убрать глобалы (конфиг-класс, чистый <code>fromJsonString</code>), HikariCP + закрытие ресурсов, фикс каста в <code>rezSQL</code>, URI-парсинг, temp-файл для cert, транзакции, BigQuery-таймаут.</td></tr>
+  <tr><td><b>Фаза 3</b> (P2)</td><td>Классы-сервисы, StatusPages/CallLogging, удаление мёртвого кода, <code>/healthz</code>.</td><td rowspan="3">По желанию</td></tr>
+  <tr><td><b>Фаза 4</b> (P3)</td><td>Генерация конфига в build/, <code>-Pdev</code>, version catalog, ktlint, CI.</td></tr>
+  <tr><td><b>Фаза 5</b> (P4)</td><td>Тесты.</td></tr>
+</table>
+
+<div class="note"><b>Краевые случаи и риски:</b>
+<ul>
+  <li><b>Контракт API:</b> правки P0/P1 не меняют имена/формат маршрутов (кроме удаления <code>/com/</code> и, возможно, <code>jsr223</code>). Изменение ответа <code>passw</code>-маршрута не требуется.</li>
+  <li><b>JSR223:</b> фронтенд вызывает его (F9) — при удалении маршрута обновить <code>main/</code> (убрать вызов) и help.html; при реализации — строгая песочница.</li>
+  <li><b><code>config.properties</code>:</b> после переноса генерации в build/ убедиться, что Dockerfile/Procfile не ждут файл в src; Docker-сборки пересобрать (<code>:java:installDist</code>).</li>
+  <li><b>Cloud Run:</b> <code>containerConcurrency: 80</code> — до фикса глобалов параллельные запросы могут искажать данные; выкатывать Фазу 2 сразу после Фазы 1.</li>
+  <li><b>Регресс фронтенда:</b> проверять после Фазы 1 на live-окружении (edit/delete в таблице с админ-паролем).</li>
+</ul>
+</div>
+
+<div class="ac">
+<h3>Критерии приёмки</h3>
+<ol>
+  <li>Маршрут <code>/com/</code> отсутствует (или недоступен без флага+токена) — тест в <code>testApplication</code>.</li>
+  <li><code>POST jsonPGupd</code> без валидного токена → <code>401</code>; с токеном → работает (тест).</li>
+  <li>В коде нет конкатенации пользовательских значений в SQL — только <code>PreparedStatement</code> (проверка grep по <code>$where</code>/<code>$name</code>/<code>$bdName</code> в строках запросов).</li>
+  <li>Параллельный прогон двух <code>jsonPGupd</code> с разными кавычками не искажает данные (ручная проверка + тест).</li>
+  <li><code>./gradlew :java:test</code> зелёный; <code>./gradlew :java:build</code> не изменяет файлы в <code>src</code> (<code>git status</code> чист после сборки).</li>
+  <li><code>/healthz</code> отвечает <code>200</code> на Cloud Run.</li>
+</ol>
+</div>
+
+<footer>План улучшений подпроекта java · fullWeb (query-gra) · сформирован по текущему коду без использования старых «Предложений».</footer>
+</div>
+</body>
+</html>
